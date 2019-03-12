@@ -6,7 +6,7 @@
 --Modified Work Copyright (C) 2017 bell07
 --Config file IO adapted from farming redo by TenPlus1
 
-minetest.log('action', 'MOD: Compost loading...')
+-- minetest.log('action', 'MOD: Compost loading...')
 
 local i18n --internationalization
 	if minetest.get_modpath("intllib") then
@@ -47,8 +47,8 @@ local garden_soil = compost.garden
 if type(garden_soil) ~= "boolean" then
 	garden_soil = false
 end
-
-minetest.log("action", "Mod Compost sub ",compost.mod, " Ver. ", compost.version, " loading.")
+local s1, s2, s3 = "MOD: Compost-", " Ver. ", " loading."
+minetest.log("action", s1..compost.mod..s2..compost.version..s3)
 
 compost.compostable_groups = {'flora', 'leaves', 'flower', 'plant', 'sapling'}
 --compost.compostable_items_indexed = {}
