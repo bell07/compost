@@ -4,6 +4,7 @@
 --Original Work Copyright (C) 2016 cd2 (cdqwertz) <cdqwertz@gmail.com>
 --Modified Work Copyright (C) Vitalie Ciubotaru <vitalie at ciubotaru dot tk>
 --Modified Work Copyright (C) 2017 bell07
+--Config file IO adapted from farming redo by TenPlus1
 
 minetest.log('action', 'MOD: Compost loading...')
 
@@ -21,7 +22,34 @@ minetest.log('action', 'intllib loaded')
 	end
 end
 
-compost = {}
+compost = {
+	mod = "Garden Soil",
+	version = "0.0.2",
+	path = minetest.get_modpath("compost")
+}
+
+-- Load new global settings if found inside mod folder
+local input = io.open(compost.path.."/compost.conf", "r")
+if input then
+	dofile(compost.path .. "/compost.conf")
+	input:close()
+end
+
+-- load new world-specific settings if found inside world folder
+local worldpath = minetest.get_worldpath()
+input = io.open(worldpath.."/compost.conf", "r")
+if input then
+	dofile(worldpath .. "/compost.conf")
+	input:close()
+end
+
+local garden_soil = compost.garden
+if type(garden_soil) ~= "boolean" then
+	garden_soil = false
+end
+
+minetest.log("action", "Mod Compost sub ",compost.mod, " Ver. ", compost.version, " loading.")
+
 compost.compostable_groups = {'flora', 'leaves', 'flower', 'plant', 'sapling'}
 --compost.compostable_items_indexed = {}
 compost.compostable_items = {
@@ -205,7 +233,11 @@ function compost.create_compost(pos)
 		stack:take_item()
 		inv:set_stack('src', k, stack)
 	end
-	local item = compost.get_rare_seed() or 'default:dirt'
+	local outblock = "default:dirt"
+	if garden_soil then
+		outblock = "compost:garden_soil"
+	end
+	local item = compost.get_rare_seed() or outblock
 	inv:add_item("dst", item)
 end
 
@@ -393,5 +425,42 @@ minetest.register_craft({
 		{"group:wood", "group:stick", "group:wood"}
 	}
 })
+
+
+if garden_soil then
+	local dirt = "default:dirt"
+	local gard = "compost:garden_soil"
+	local bin = "compost:wood_barrel_empty"
+	
+	minetest.register_craft({
+        type = "cooking",
+        cooktime = 3,
+        output = dirt,
+        recipe = gard,
+	})
+	
+	minetest.register_node(gard, {
+		description = "Garden Soil",
+		tiles = {"compost_garden_soil.png"},
+		groups = {crumbly = 3, soil=3, grassland = 1, wet = 1},
+		sounds =  default.node_sound_dirt_defaults(),
+	})
+
+	minetest.register_craft({
+		output = "default:wood 6",
+		recipe = {
+			{bin}
+		}
+	})
+
+	minetest.register_craft({
+		type = "fuel",
+		recipe = bin,
+		burntime = 45,
+	})
+
+end
+
+
 
 minetest.log('action', 'MOD: Compost loaded.')
